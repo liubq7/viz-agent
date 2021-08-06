@@ -46,7 +46,7 @@ func sendData() {
 
 			response, err := http.Post("http://localhost:3006/txs", "application/json", bytes.NewBuffer(jsonValue))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("post:", err)
 			}
 
 			response.Body.Close()
@@ -58,12 +58,12 @@ func sendData() {
 func getHash(message []byte) string {
 	var recv Recv
 	if err := json.Unmarshal(message, &recv); err != nil {
-		log.Fatal("unmarshal1:", err)
+		log.Fatal("unmarshal into Recv:", err)
 	}
 
 	var jsonMap map[string]interface{}
 	if err := json.Unmarshal([]byte(recv.Params.Result), &jsonMap); err != nil {
-		log.Fatal("unmarshal2:", err)
+		log.Fatal("unmarshal into jsonMap:", err)
 	}
 
 	transaction := jsonMap["transaction"]
