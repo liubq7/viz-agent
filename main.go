@@ -12,7 +12,7 @@ import (
 )
 
 const reqMessage = "{\"id\": 2, \"jsonrpc\": \"2.0\", \"method\": \"subscribe\", \"params\": [\"new_transaction\"]}"
-const nodeID = 1
+const nodeID = 1 //TODO: id and coordinate
 
 var firstRecv = true
 var data []TX
