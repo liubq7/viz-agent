@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -14,10 +12,8 @@ import (
 const reqNodeInfo = "{\"id\": 42, \"jsonrpc\": \"2.0\", \"method\": \"local_node_info\", \"params\": []}"
 const reqNewTX = "{\"id\": 2, \"jsonrpc\": \"2.0\", \"method\": \"subscribe\", \"params\": [\"new_transaction\"]}"
 
-// TODO: data race
-var nodeID string
 var firstRecv = true
-var data []TX
+var id = make(chan string)
 
 type Recv struct {
 	Jsonrpc string
@@ -26,12 +22,6 @@ type Recv struct {
 		Result       string
 		Subscription string
 	}
-}
-
-type TX struct {
-	NodeID        string `json:"node_id"`
-	TXHash        string `json:"tx_hash"`
-	UnixTimestamp int64  `json:"unix_timestamp"`
 }
 
 func setNodeID() {
@@ -57,44 +47,11 @@ func setNodeID() {
 
 		result := jsonMap["result"]
 		resultMap := result.(map[string]interface{})
-		nodeID = resultMap["node_id"].(string)
+		nodeID := resultMap["node_id"].(string)
+
+		id <- nodeID
 		fmt.Println(nodeID)
-
 		sendNodeID(nodeID)
-	}
-}
-
-func sendNodeID(nodeID string) {
-	values := map[string]string{"node_id": nodeID}
-	jsonValue, _ := json.Marshal(values)
-
-	response, err := http.Post("http://localhost:3006/nodes", "application/json", bytes.NewBuffer(jsonValue))
-	if err != nil {
-		log.Fatal("post:", err)
-	}
-
-	response.Body.Close()
-}
-
-func sendData() {
-	ticker := time.NewTicker(time.Minute).C
-
-	for {
-		select {
-		case <-ticker:
-			if len(data) == 0 {
-				continue
-			}
-			jsonValue, _ := json.Marshal(data)
-
-			response, err := http.Post("http://localhost:3006/txs", "application/json", bytes.NewBuffer(jsonValue))
-			if err != nil {
-				log.Fatal("post:", err)
-			}
-
-			response.Body.Close()
-			data = []TX{}
-		}
 	}
 }
 
@@ -117,7 +74,7 @@ func getHash(message []byte) string {
 
 func main() {
 	go setNodeID()
-	go sendData()
+	go sendTXs()
 
 	dialer := websocket.Dialer{}
 	conn, _, err := dialer.Dial("ws://localhost:18115", nil)
@@ -131,19 +88,20 @@ func main() {
 		log.Fatal("req new tx:", err)
 	}
 
+	nodeID := <- id
+
 	for {
 		if _, message, err := conn.ReadMessage(); err != nil {
 			log.Fatal("read:", err)
 		} else {
-			if firstRecv || nodeID == "" {
+			if firstRecv {
 				firstRecv = false
 				continue
 			}
 
 			tx := TX{nodeID, getHash(message), time.Now().Unix()}
 			fmt.Println(tx)
-
-			data = append(data, tx)
+			addTX(tx)
 		}
 	}
 }
