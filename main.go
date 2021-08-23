@@ -88,7 +88,7 @@ func main() {
 		log.Fatal("req new tx:", err)
 	}
 
-	nodeID := <- id
+	nodeID := <-id
 
 	for {
 		if _, message, err := conn.ReadMessage(); err != nil {
@@ -99,7 +99,7 @@ func main() {
 				continue
 			}
 
-			tx := TX{nodeID, getHash(message), time.Now().Unix()}
+			tx := TX{nodeID, getHash(message), time.Now().UnixNano() / 1e6}
 			fmt.Println(tx)
 			addTX(tx)
 		}
