@@ -17,8 +17,9 @@ func post(url string, jsonValue []byte) {
 	response.Body.Close()
 }
 
-func sendTXs(nodeID string) {
+func sendTXs(id <-chan string) {
 	ticker := time.NewTicker(time.Minute).C
+	nodeID := <-id
 
 	for {
 		select {

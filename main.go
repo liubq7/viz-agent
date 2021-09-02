@@ -24,7 +24,7 @@ type Recv struct {
 	}
 }
 
-func setNodeID() {
+func setNodeID(id chan<- string) {
 	dialer := websocket.Dialer{}
 	conn, _, err := dialer.Dial("ws://localhost:18115", nil)
 	if err != nil {
@@ -50,6 +50,7 @@ func setNodeID() {
 		nodeID := resultMap["node_id"].(string)
 
 		id <- nodeID
+		close(id)
 		fmt.Println(nodeID)
 	}
 }
@@ -72,7 +73,8 @@ func getHash(message []byte) string {
 }
 
 func main() {
-	go setNodeID()
+	go setNodeID(id)
+	go sendTXs(id)
 
 	dialer := websocket.Dialer{}
 	conn, _, err := dialer.Dial("ws://localhost:18115", nil)
@@ -85,9 +87,6 @@ func main() {
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(reqNewTX)); err != nil {
 		log.Fatal("req new tx:", err)
 	}
-
-	nodeID := <-id
-	go sendTXs(nodeID)
 
 	for {
 		if _, message, err := conn.ReadMessage(); err != nil {
