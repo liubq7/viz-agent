@@ -17,13 +17,7 @@ func post(url string, jsonValue []byte) {
 	response.Body.Close()
 }
 
-func sendNodeID(nodeID string) {
-	values := map[string]string{"node_id": nodeID}
-	jsonValue, _ := json.Marshal(values)
-	post("http://localhost:3006/nodes", jsonValue)
-}
-
-func sendTXs() {
+func sendTXs(nodeID string) {
 	ticker := time.NewTicker(time.Minute).C
 
 	for {
@@ -34,7 +28,7 @@ func sendTXs() {
 				continue
 			}
 			jsonValue, _ := json.Marshal(txs)
-			post("http://localhost:3006/txs", jsonValue)
+			post("http://localhost:3006/nodes/" + nodeID + "/info", jsonValue)
 		}
 	}
 }

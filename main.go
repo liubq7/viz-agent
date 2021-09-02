@@ -51,7 +51,6 @@ func setNodeID() {
 
 		id <- nodeID
 		fmt.Println(nodeID)
-		sendNodeID(nodeID)
 	}
 }
 
@@ -74,7 +73,6 @@ func getHash(message []byte) string {
 
 func main() {
 	go setNodeID()
-	go sendTXs()
 
 	dialer := websocket.Dialer{}
 	conn, _, err := dialer.Dial("ws://localhost:18115", nil)
@@ -89,6 +87,7 @@ func main() {
 	}
 
 	nodeID := <-id
+	go sendTXs(nodeID)
 
 	for {
 		if _, message, err := conn.ReadMessage(); err != nil {
@@ -99,7 +98,7 @@ func main() {
 				continue
 			}
 
-			tx := TX{nodeID, getHash(message), time.Now().UnixNano() / 1e6}
+			tx := TX{getHash(message), time.Now().UnixNano() / 1e6}
 			fmt.Println(tx)
 			addTX(tx)
 		}
