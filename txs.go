@@ -4,7 +4,6 @@ var add = make(chan TX)
 var get = make(chan []TX)
 
 type TX struct {
-	//NodeID        string `json:"node_id"`
 	TXHash        string `json:"tx_hash"`
 	UnixTimestamp int64  `json:"unix_timestamp"`
 }

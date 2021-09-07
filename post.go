@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
 	"time"
@@ -18,6 +19,9 @@ func post(url string, jsonValue []byte) {
 }
 
 func sendTXs(id <-chan string) {
+	urlPtr := flag.String("url", "http://localhost:3006", "url")
+	flag.Parse()
+
 	ticker := time.NewTicker(time.Minute).C
 	nodeID := <-id
 
@@ -29,7 +33,7 @@ func sendTXs(id <-chan string) {
 				continue
 			}
 			jsonValue, _ := json.Marshal(txs)
-			post("http://localhost:3006/nodes/" + nodeID + "/info", jsonValue)
+			post(*urlPtr+"/api/nodes/"+nodeID+"/info", jsonValue)
 		}
 	}
 }
