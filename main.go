@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -25,8 +26,11 @@ type Recv struct {
 }
 
 func setNodeID(id chan<- string) {
+	wsPtr := flag.String("ws", "ws://localhost:18115", "ws")
+	flag.Parse()
+
 	dialer := websocket.Dialer{}
-	conn, _, err := dialer.Dial("ws://localhost:18115", nil)
+	conn, _, err := dialer.Dial(*wsPtr, nil)
 	if err != nil {
 		log.Fatal("dial:", err)
 	}

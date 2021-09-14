@@ -19,7 +19,7 @@ func post(url string, jsonValue []byte) {
 }
 
 func sendTXs(id <-chan string) {
-	urlPtr := flag.String("url", "http://localhost:3006", "url")
+	urlPtr := flag.String("url", "http://54.254.68.135", "url")
 	flag.Parse()
 
 	ticker := time.NewTicker(time.Minute).C
